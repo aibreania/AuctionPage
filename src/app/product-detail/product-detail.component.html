@@ -1,18 +1,42 @@
 <div>
   <img src="http://placehold.it/820x230">
   <div>
-    <h4 class="pull-right">{{product.price}}$</h4>
-    <h4>{{product.title}}</h4>
-    <h4>{{product.desc}}</h4>
+    <h4 class="pull-right">{{product?.price}}$</h4>
+    <h4>{{product?.title}}</h4>
+    <h4>{{product?.desc}}</h4>
   </div>
   <div>
+    <p class="pull-right">{{comments?.length}}</p>
     <p>
-      <app-stars [rating]="product.rating"></app-stars>
+      <app-stars [rating]="product?.rating"></app-stars>
     </p>
   </div>
 </div>
 
+<div class="thumbnail">
+  <button class="btn btn-default btn-lg" [class.active] = "isWatched"
+  (click)="watchProduct()">
+    {{isWatched? 'unfollow' : 'follow'}}
+  </button>
+  <label>Latest Bid: {{currentBid | number:'.2-2'}}$</label>
+</div>
+
 <div class="well">
+  <div>
+    <button class="btn btn-success" (click)="isCommentHidden=!isCommentHidden">Comment</button>
+  </div>
+  <div [hidden]="isCommentHidden">
+    <div>
+      <app-stars [(rating)]="newRating" [readonly]="false"></app-stars>
+    </div>
+    <div>
+      <textarea [(ngModel)]="newComment"></textarea>
+    </div>
+    <div>
+      <button class="btn" (click)="addComment()">Post</button>
+    </div>
+  </div>
+
   <div class="row" *ngFor="let comment of comments">
     <hr>
     <div class="col-md-12">

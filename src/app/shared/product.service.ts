@@ -1,40 +1,70 @@
-import { Injectable } from '@angular/core';
+import {EventEmitter, Injectable} from '@angular/core';
+import {Http, RequestOptions, Headers, URLSearchParams} from "@angular/http";
+import {Observable} from "rxjs/Rx";
+import 'rxjs/Rx';
 
 @Injectable()
 export class ProductService {
 
+  searchEvent:EventEmitter<ProductSearchParams> = new EventEmitter();
 
-  private products: Product[] = [
-    new Product(1, "Abby", 1.99, 3.5, "First Product xxxxxxxxxxxxxxxxxxxxxxxxxx", ["Electronics", "Entertainment"]),
-    new Product(2, "Bobby", 2.99, 2.2, "Second Product xxxxxxxxxxxxxxxxxxxxxxxxxx", ["Sports", "Tools"]),
-    new Product(3, "Cody", 3.99, 4.1, "Third Product xxxxxxxxxxxxxxxxxxxxxxxxxx", ["Toy"]),
-    new Product(4, "Dicky", 4.99, 3.4, "Fourth Product xxxxxxxxxxxxxxxxxxxxxxxxxx", ["Garment", "Women"]),
-    new Product(5, "Esty", 5.99, 2.8, "Fifth Product xxxxxxxxxxxxxxxxxxxxxxxxxx", ["Food", "Child"]),
-    new Product(6, "Fitty", 6.99, 4.5, "Sixth Product xxxxxxxxxxxxxxxxxxxxxxxxxx", ["Book"])
-  ];
-
-  private comments: Comment[] = [
-    new Comment(1, 1, "2017-02-02", "april", 3, "ok"),
-    new Comment(2, 1, "2017-03-02", "may", 4, "good"),
-    new Comment(3, 1, "2017-04-02", "june", 2, "unsatisfied"),
-    new Comment(4, 2, "2017-05-02", "jane", 1, "bad")
-  ];
-
-  constructor() {
+  getAllCategories(): string[] {
+    return ["Electronics", "Tools", "Children", "Women", "Food"];
   }
 
-  getProducts(): Product[] {
-    return this.products;
+  constructor(private http: Http) {
+
   }
 
-  getProduct(id:number): Product {
-    //noinspection TypeScriptValidateTypes
-    return this.products.find((product) => product.id == id);
+  getProducts(): Observable<Product[]> {
+    return this.http.get("/api/products").map(res => res.json());
   }
 
-  getCommentsForProductId(id:number): Comment[] {
-    return this.comments.filter((comment: Comment) => comment.productId == id);
+  getProduct(id:number): Observable<Product> {
+    return this.http.get("/api/product/"+id).map(res => res.json());
   }
+
+  getCommentsForProductId(id:number): Observable<Comment[]> {
+    return this.http.get("/api/product/"+id+"/comments").map(res => res.json());
+  }
+
+  search(params: ProductSearchParams): Observable<Product[]> {
+    let myHeaders = new Headers();
+    let myParams = this.encodeParams(params);
+    let options = new RequestOptions({headers: myHeaders, params: myParams});
+
+    return this.http.get("/api/products", options).map(res => res.json());
+  }
+
+
+  private encodeParams(params: ProductSearchParams): URLSearchParams {
+
+    return Object.keys(params)
+      .filter(key => params[key])
+      .reduce((sum:URLSearchParams, key:string) => {
+        sum.append(key, params[key]);
+        return sum;
+      }, new URLSearchParams());
+  }
+
+  private encodeParams2(params: ProductSearchParams): string {
+
+    return Object.keys(params)
+      .filter(key => params[key])
+      .reduce((s:string, key:string) => {
+        s = s + key + "=" + params[key];
+        return s;
+      }, "");
+  }
+}
+
+
+export class ProductSearchParams {
+  constructor (
+    public title:string,
+    public price:number,
+    public category:string
+  ){}
 }
 
 export class Product {
@@ -44,7 +74,7 @@ export class Product {
     public price: number,
     public rating: number,
     public desc: string,
-    public cateogories: Array<string>) {
+    public categories: Array<string>) {
   }
 }
 
